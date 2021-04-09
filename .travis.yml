@@ -1,0 +1,24 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t bschelfh/multi-docker-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true bschelfh/multi-docker-test npm run test
+
+after_success:
+  - docker build -t bschelfh/complex-client ./client
+  - docker build -t bschelfh/complex-nginx ./nginx
+  - docker build -t bschelfh/complex-server ./server
+  - docker build -t bschelfh/complex-worker ./worker
+  # Log in to the docker CLI
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+ 
+  # Push code to Docker Hub 
+  - docker push bschelfh/complex-client
+  - docker push bschelfh/complex-nginx
+  - docker push bschelfh/complex-server
+  - docker push bschelfh/complex-worker  
